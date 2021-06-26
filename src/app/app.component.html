@@ -1,0 +1,126 @@
+<div class="col-md-2">
+
+</div>
+<div class="container col-md-12 mb-10">
+<h3>NGX DATATABLE  <i *ngIf="invalidedit"  class="material-icons refresh-icons" (click)="getTabledata()">refresh</i>
+</h3> 
+</div>
+<div class="col-md-2">
+ 
+</div>
+
+<div class=" container col-md-4" *ngIf="loading">
+  {{'Loading......'}}
+</div>
+
+<div class="container col-12" *ngIf="!loading">
+
+  <ngx-datatable #myTable style="width:100%"  [columns]="listColumns" [rows]="listData"> <!--Defining columns and row list-->
+  
+
+  
+  <ngx-datatable-column [name]="column.name" [prop]="column.prop" [sortable]="column.sortable"
+    [width]="column.width?column.width:150"  *ngFor="let column of this.listColumns">   <!-- Looping all the columns-->
+
+    <ng-template let-column="column" ngx-datatable-header-template class="datatable-header">  <!--Setting header with edit icon for the selected columns-->
+     <div class="datatable-header">
+      <span [title]="column.name" >{{column.name}}</span>
+      <i *ngIf="((column.prop == 'source')||column.prop == 'category'||column.prop == 'date' ||column.prop == 'userEdited')" [title]="column.name" class="material-icons header-icons">
+          edit
+      </i>
+      <i *ngIf="column.prop == 'comments'" [title]="column.name" class="material-icons header-icons">
+      list
+    </i>
+    </div>
+    </ng-template>  <!--Setting header with edit ended-->
+
+    <ng-template let-rowIndex="rowIndex" let-value="value" let-row="row" ngx-datatable-cell-template> <!--Adding inline edit to rows-->
+      <ng-container *ngIf="!column.type">
+       {{value}}
+      </ng-container>
+      
+      <ng-container  *ngIf="column.type == 'date'">
+         <span title="Double click to edit" (dblclick)="showInlineEdit(row,'editdate',rowIndex)" *ngIf="!row.editdate">{{row.date | date: 'MM/dd/yyyy'}}</span>
+            
+         <div *ngIf="row.editdate">
+           <input type="text" placeholder="SelectDate" [bsConfig]="bsConfig" bsDatepicker [bsValue]="row.date" [(ngModel)]="row.date" (change)="tabledataEdited(row, 'editdate', rowIndex)" (clickOutside)="row.editdate = false">
+         </div>
+     
+      </ng-container>
+      <ng-container *ngIf="column.type =='checkbox'">
+        <div>
+          <input type="checkbox" class="check" [(ngModel)]="row.userEdited"  (click)="showInlineEdit(row, 'editcheckbox', rowIndex)">
+        </div>
+      </ng-container>
+      <ng-container *ngIf="column.type== 'amount'">
+       {{value?(value | currency):'--'}}
+      </ng-container>
+
+      <ng-container *ngIf="column.type== 'd'">
+      {{value | date}}
+      </ng-container>
+
+      <ng-container *ngIf="column.type=='source'">  <!--Inline edit functionality for source Inputs-->
+        <span title="Double click to edit" [ngClass]="{'error':row.sourceerror}" (dblclick)="showInlineEdit(row, 'editSource', rowIndex)" *ngIf="!row.editSource">
+           {{row.source ? row.source : '--'}}
+        </span>
+
+        <div *ngIf="row.editSource">
+          <input  type="text" name="source" [(ngModel)]="row.source" style="height:30px" (change)="tabledataEdited(row, 'source', rowIndex)"  (clickOutside)="row.editSource = false">
+        </div>
+        
+      </ng-container>
+
+      <ng-container *ngIf="column.type == 'category'">  <!--Inline edit functionality for category Inputs-->
+      <div tooltip='Enter a Valid Input' container="body" [adaptivePosition]="false">
+      <span title="Double click to Edit" [ngClass]="{'error': row.categoryerror}" (dblclick)="showInlineEdit(row, 'editcategory', rowIndex)" *ngIf="!row.editcategory">
+       {{row.category? row.category : '--'}}
+      </span>
+      
+      <div *ngIf="row.editcategory">
+       <input type="text" name="category" style="height:30px" [(ngModel)]="row.category" (change)="tabledataEdited(row,'category', rowIndex)" (clickOutside)="row.editcategory = false">
+      </div>
+      </div>
+      </ng-container>
+
+      <ng-container *ngIf="column.type=='comments'"> <!--Inline editing for comments-->
+        <span title="Double click to edit" (dblclick)="showInlineEdit(row, 'editcomments', rowIndex)" *ngIf="!row.editcomments">{{row.comments ? row.comments : '--'}}</span>
+        
+
+        <div *ngIf="row.editcomments">
+          <select class="form-control"  [(ngModel)]="row.comments" id="comments" (change)="tabledataEdited(row, 'editcategory', rowIndex)" (clickOutside)="row.editcomments = false">
+            <option *ngFor="let option of options" [ngValue]="option.description" >  
+               <span class="option">{{option.description}}</span>
+            </option>
+         </select>
+        </div>
+      </ng-container>
+     
+      <ng-container *ngIf="column.type == 'toggle'">
+        <label class="switch">
+          <input type="checkbox"  [(ngModel)]="row.reviewed" (click)="showInlineEdit(row, 'editToggle', rowIndex)">
+          <span class="slider round"></span>
+        </label>
+      </ng-container>
+
+    </ng-template>
+
+    
+   
+   </ngx-datatable-column>
+
+  </ngx-datatable>
+
+</div>
+
+<!-- <div class="container col-md-12">
+<div class="col-md-4" *ngIf="!datachanged">
+  <button type="button" class="btn btn-primary" (click)="datachanged = true">Push Data to server</button>
+</div>
+</div> -->
+
+<div class="container col-md-12" *ngIf="!loading && datachanged">
+  <div class="col-md-4">
+    <button type="button" class="btn btn-primary"  (click)="saveEditedData()">Save</button> | <button type="button" class="btn btn-secondary" (click)="resetOrginalData()">Cancel</button>
+  </div>
+</div>
